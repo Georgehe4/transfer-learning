@@ -85,7 +85,7 @@ class DQN:
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
         self.update = self.optimizer.minimize(self.loss)
 
-def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma):
+def learn_double_dqn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma):
     """
     Args:
         session: A tensorflow sesson object
@@ -109,6 +109,41 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma):
     # The target network estimates the Q-values (in the next state s', new_states is passed!) 
     # for every transition in the minibatch
     q_vals = session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states})
+    double_q = q_vals[range(batch_size), arg_q_max]
+    # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
+    # if the game is over, targetQ=rewards
+    target_q = rewards + (gamma*double_q * (1-terminal_flags))
+    # Gradient descend step to update the parameters of the main network
+    loss, _ = session.run([main_dqn.loss, main_dqn.update], 
+                          feed_dict={main_dqn.input:states, 
+                                     main_dqn.target_q:target_q, 
+                                     main_dqn.action:actions})
+    return loss
+
+def learn_single_dqn(session, replay_memory, main_dqn, batch_size, gamma):
+    """
+    Args:
+        session: A tensorflow sesson object
+        replay_memory: A ReplayMemory object
+        main_dqn: A DQN object
+        target_dqn: A DQN object
+        batch_size: Integer, Batch size
+        gamma: Float, discount factor for the Bellman equation
+    Returns:
+        loss: The loss of the minibatch, for tensorboard
+    Draws a minibatch from the replay memory, calculates the 
+    target Q-value that the prediction Q-value is regressed to. 
+    Then a parameter update is performed on the main DQN.
+    """
+    # Draw a minibatch from the replay memory
+    states, actions, rewards, new_states, terminal_flags = replay_memory.get_minibatch()    
+    # The main network estimates which action is best (in the next 
+    # state s', new_states is passed!) 
+    # for every transition in the minibatch
+    arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
+    # The target network estimates the Q-values (in the next state s', new_states is passed!) 
+    # for every transition in the minibatch
+    q_vals = session.run(main_dqn.q_values, feed_dict={main_dqn.input:new_states})
     double_q = q_vals[range(batch_size), arg_q_max]
     # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
     # if the game is over, targetQ=rewards
