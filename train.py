@@ -239,7 +239,7 @@ def transfer_initialized_train_dqn(main_dqn,  main_dqn_vars, param_summaries, ta
                 if len(rewards) % 10 == 0:
                     # Scalar summaries for tensorboard
                     if frame_number > REPLAY_MEMORY_START_SIZE:
-                        summ = sess.run(PERFORMANCE_SUMMARIES, 
+                        summ = sess.run(param_summaries, 
                                         feed_dict={LOSS_PH:np.mean(loss_list), 
                                                    REWARD_PH:np.mean(rewards[-100:])})
                         
