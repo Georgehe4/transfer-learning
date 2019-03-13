@@ -316,16 +316,18 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma):
     """
     # Draw a minibatch from the replay memory
     states, actions, rewards, new_states, terminal_flags = replay_memory.get_minibatch()    
-    # The main network estimates which action is best (in the next 
-    # state s', new_states is passed!) 
-    # for every transition in the minibatch
-    arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
-    # The target network estimates the Q-values (in the next state s', new_states is passed!) 
-    # for every transition in the minibatch
-    q_vals = session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states})
+
     if DOUBLE_Q:
+        # The main network estimates which action is best (in the next
+        # state s', new_states is passed!)
+        # for every transition in the minibatch
+        arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
+        # The target network estimates the Q-values (in the next state s', new_states is passed!)
+        # for every transition in the minibatch
+        q_vals = session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states})
         double_q = q_vals[range(batch_size), arg_q_max]
     else:
+        q_vals = session.run(main_dqn.q_values, feed_dict={main_dqn.input:new_states})
         double_q = tf.max(q_vals, 1)
     # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
     # if the game is over, targetQ=rewards
