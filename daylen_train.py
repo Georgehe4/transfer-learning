@@ -328,7 +328,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma):
         double_q = q_vals[range(batch_size), arg_q_max]
     else:
         q_vals = session.run(main_dqn.q_values, feed_dict={main_dqn.input:new_states})
-        double_q = tf.max(q_vals, 1)
+        double_q = tf.reduce_max(q_vals, 1)
     # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
     # if the game is over, targetQ=rewards
     target_q = rewards + (gamma*double_q * (1-terminal_flags))
