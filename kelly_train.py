@@ -11,7 +11,7 @@ DOUBLE_Q = True
 #ENV_NAME = 'BreakoutDeterministic-v4'
 ENV_NAME = 'PongDeterministic-v4'  
 # You can increase the learning rate to 0.00025 in Pong for quicker results
-RUNID = 'breakout_double_dueling_2.5E-4_transfer_conv1_only'
+RUNID = 'pong_double_dueling_2.5E-4_transfer_conv1_only'
 LEARNING_RATE = 0.00025
 
 
